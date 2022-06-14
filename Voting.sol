@@ -18,6 +18,8 @@ contract Voting is Ownable {
     }
     uint winningProposalId;
     Proposal[] public proposals;
+    uint countVoting;
+    uint registerPerson;
 
     enum WorkflowStatus {
         RegisteringVoters,
@@ -42,6 +44,7 @@ contract Voting is Ownable {
         require (uint(status) == 0, unicode"L'ajout de votant est fermé.");
         require (!whitelist[_address].isRegistered, unicode"Cette adresse exist déjà.");
         whitelist[_address].isRegistered = true;
+        registerPerson++;
         emit VoterRegistered(_address);
     }
 
@@ -74,6 +77,7 @@ contract Voting is Ownable {
         whitelist[msg.sender].hasVoted = true;
         whitelist[msg.sender].votedProposalId = _proposalId;
         proposals[_proposalId].voteCount++;
+        countVoting++;
 
         emit Voted(msg.sender, whitelist[msg.sender].hasVoted);
     }
@@ -141,5 +145,17 @@ contract Voting is Ownable {
         require (whitelist[_address].hasVoted == true, unicode"Cette addresse n'a pas votée.");
         
         return whitelist[_address].votedProposalId;
+    }
+
+
+    // Affiche le taux de participation en pourcentage
+    function rateOfParticipation () public view returns (uint) {
+        require (uint(status) == 5, unicode"Les votes ne sont pas encore terminés.");
+        if (registerPerson > 0 && countVoting > 0) {
+            return uint(countVoting) * 100 / uint(registerPerson);
+        }
+        else {
+            return 0;
+        }
     }
 }
